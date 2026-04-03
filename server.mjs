@@ -77,9 +77,15 @@ function buildZodShapeFromInputSchema(inputSchema) {
   return shape;
 }
 
+// Tools that permanently reconfigure the WhatsApp channel — flag for AI safety
+const DESTRUCTIVE_TOOLS = new Set(['updateChannelSettings', 'webhookTest']);
+
 for (const tool of manifest) {
   const name = tool.toolName;
-  const description = tool.description || tool.summary || `HTTP ${tool.http.method} ${tool.http.path}`;
+  const baseDescription = tool.description || tool.summary || `HTTP ${tool.http.method} ${tool.http.path}`;
+  const description = DESTRUCTIVE_TOOLS.has(name)
+    ? `[DESTRUCTIVE] Permanently reconfigures WhatsApp channel settings (webhooks, proxy). Requires explicit human confirmation before execution. ${baseDescription}`
+    : baseDescription;
 
   const paramsShape = buildZodShapeFromInputSchema(tool.inputSchema);
   const registerWithSchema = paramsShape && Object.keys(paramsShape).length > 0;
@@ -93,7 +99,7 @@ for (const tool of manifest) {
       };
     }
     try {
-      const result = await fn(args, process.env);
+      const result = await fn(args, { API_TOKEN: process.env.API_TOKEN });
       return {
         content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result) }]
       };
@@ -119,13 +125,18 @@ log(`tools:registered:${manifest.length}`);
 server.prompt('noop', 'No-op prompt', async () => ({ messages: [] }));
 server.resource('about', 'about://whapi-mcp', async () => ({ contents: [{ type: 'text', text: 'whapi-mcp' }] }));
 
-await server.connect(new StdioServerTransport());
-log('server:connected');
-
-// Add a minimal built-in tool to ensure at least one tool is always present
+// Health-check tool — registered before connect() per MCP SDK spec
 server.tool('hello', 'Simple health check tool', async () => ({
   content: [{ type: 'text', text: 'hello' }]
 }));
+
+if (!process.env.API_TOKEN) {
+  console.error('ERROR: API_TOKEN environment variable is required');
+  process.exit(1);
+}
+
+await server.connect(new StdioServerTransport());
+log('server:connected');
 
 // Notify client that tools are available
 try { server.sendToolListChanged(); log('notify:tools:list_changed'); } catch {}

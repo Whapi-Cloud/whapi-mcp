@@ -26,13 +26,6 @@ module.exports = async function getChannelSettings(args, env = process.env) {
 
   const init = { method, headers };
   
-  if (method !== 'GET'){
-    init.headers['Content-Type'] = 'application/json';
-    const bodyObj = {};
-    
-    init.body = JSON.stringify(bodyObj);
-  }
-  
   const res = await fetch(url, init);
   const contentType = res.headers.get('content-type') || '';
   let content;

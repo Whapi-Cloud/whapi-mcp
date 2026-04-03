@@ -1,8 +1,8 @@
 const fetch = require('node-fetch');
-module.exports = async function changeStatus(args, env = process.env) {
+module.exports = async function editContact(args, env = process.env) {
   // Build path with path params
-  let pathTmpl = "/status";
-  for (const p of []){
+  let pathTmpl = "/contacts/{ContactID}";
+  for (const p of [{"name":"ContactID","type":"string","required":true,"description":"Contact ID"}]){
     const val = args[p.name];
     if (val === undefined || val === null) throw new Error('Missing path param: ' + p.name);
     pathTmpl = pathTmpl.replace('{'+p.name+'}', encodeURIComponent(String(val)));
@@ -22,14 +22,14 @@ module.exports = async function changeStatus(args, env = process.env) {
   headers['Authorization'] = 'Bearer ' + (env.API_TOKEN || '');
 
   const url = "https://gate.whapi.cloud" + pathTmpl + qs;
-  const method = "PUT";
+  const method = "PATCH";
 
   const init = { method, headers };
   
   if (method !== 'GET'){
     init.headers['Content-Type'] = 'application/json';
     const bodyObj = {};
-    if (args.hasOwnProperty('status')) bodyObj['status'] = args['status'];
+    if (args.hasOwnProperty('name')) bodyObj['name'] = args['name'];
     init.body = JSON.stringify(bodyObj);
   }
   

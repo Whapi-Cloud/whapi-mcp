@@ -10,7 +10,7 @@ module.exports = async function getNewsletter(args, env = process.env) {
 
   // Query string
   const queryPairs = [];
-  for (const q of [{"name":"user role","type":"string","required":false,"enum":["subscriber","admin","guest","owner"],"description":"User's role regarding the newsletter"}]){
+  for (const q of [{"name":"user_role","type":"string","required":false,"enum":["subscriber","admin","guest","owner"],"description":"User's role regarding the newsletter"}]){
     const v = args[q.name];
     if (v === undefined || v === null) continue;
     queryPairs.push(encodeURIComponent(q.name) + '=' + encodeURIComponent(String(v)));

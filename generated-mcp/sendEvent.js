@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
-module.exports = async function updateChannelSettings(args, env = process.env) {
+module.exports = async function sendEvent(args, env = process.env) {
   // Build path with path params
-  let pathTmpl = "/settings";
+  let pathTmpl = "/messages/event";
   for (const p of []){
     const val = args[p.name];
     if (val === undefined || val === null) throw new Error('Missing path param: ' + p.name);
@@ -22,24 +22,23 @@ module.exports = async function updateChannelSettings(args, env = process.env) {
   headers['Authorization'] = 'Bearer ' + (env.API_TOKEN || '');
 
   const url = "https://gate.whapi.cloud" + pathTmpl + qs;
-  const method = "PATCH";
+  const method = "POST";
 
   const init = { method, headers };
   
   if (method !== 'GET'){
     init.headers['Content-Type'] = 'application/json';
     const bodyObj = {};
-    if (args.hasOwnProperty('pdo_sync')) bodyObj['pdo_sync'] = args['pdo_sync'];
-    if (args.hasOwnProperty('callback_backoff_delay_ms')) bodyObj['callback_backoff_delay_ms'] = args['callback_backoff_delay_ms'];
-    if (args.hasOwnProperty('max_callback_backoff_delay_ms')) bodyObj['max_callback_backoff_delay_ms'] = args['max_callback_backoff_delay_ms'];
-    if (args.hasOwnProperty('callback_persist')) bodyObj['callback_persist'] = args['callback_persist'];
-    if (args.hasOwnProperty('media')) bodyObj['media'] = args['media'];
-    if (args.hasOwnProperty('webhooks')) bodyObj['webhooks'] = args['webhooks'];
-    if (args.hasOwnProperty('proxy')) bodyObj['proxy'] = args['proxy'];
-    if (args.hasOwnProperty('mobile_proxy')) bodyObj['mobile_proxy'] = args['mobile_proxy'];
-    if (args.hasOwnProperty('offline_mode')) bodyObj['offline_mode'] = args['offline_mode'];
-    if (args.hasOwnProperty('full_history')) bodyObj['full_history'] = args['full_history'];
-    if (args.hasOwnProperty('ignored_presences')) bodyObj['ignored_presences'] = args['ignored_presences'];
+    if (args.hasOwnProperty('to')) bodyObj['to'] = args['to'];
+    if (args.hasOwnProperty('title')) bodyObj['title'] = args['title'];
+    if (args.hasOwnProperty('description')) bodyObj['description'] = args['description'];
+    if (args.hasOwnProperty('startTime')) bodyObj['startTime'] = args['startTime'];
+    if (args.hasOwnProperty('endTime')) bodyObj['endTime'] = args['endTime'];
+    if (args.hasOwnProperty('degreesLatitude')) bodyObj['degreesLatitude'] = args['degreesLatitude'];
+    if (args.hasOwnProperty('degreesLongitude')) bodyObj['degreesLongitude'] = args['degreesLongitude'];
+    if (args.hasOwnProperty('locationName')) bodyObj['locationName'] = args['locationName'];
+    if (args.hasOwnProperty('locationAddress')) bodyObj['locationAddress'] = args['locationAddress'];
+    if (args.hasOwnProperty('view_once')) bodyObj['view_once'] = args['view_once'];
     init.body = JSON.stringify(bodyObj);
   }
   

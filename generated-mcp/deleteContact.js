@@ -1,8 +1,8 @@
 const fetch = require('node-fetch');
-module.exports = async function getGroup(args, env = process.env) {
+module.exports = async function deleteContact(args, env = process.env) {
   // Build path with path params
-  let pathTmpl = "/groups/{GroupID}";
-  for (const p of [{"name":"GroupID","type":"string","required":true,"description":"Group ID"}]){
+  let pathTmpl = "/contacts/{ContactID}";
+  for (const p of [{"name":"ContactID","type":"string","required":true,"description":"Contact ID"}]){
     const val = args[p.name];
     if (val === undefined || val === null) throw new Error('Missing path param: ' + p.name);
     pathTmpl = pathTmpl.replace('{'+p.name+'}', encodeURIComponent(String(val)));
@@ -10,7 +10,7 @@ module.exports = async function getGroup(args, env = process.env) {
 
   // Query string
   const queryPairs = [];
-  for (const q of [{"name":"resync","type":"boolean","required":false,"default":false,"description":"If set to true, the channel will resync its data."}]){
+  for (const q of []){
     const v = args[q.name];
     if (v === undefined || v === null) continue;
     queryPairs.push(encodeURIComponent(q.name) + '=' + encodeURIComponent(String(v)));
@@ -22,7 +22,7 @@ module.exports = async function getGroup(args, env = process.env) {
   headers['Authorization'] = 'Bearer ' + (env.API_TOKEN || '');
 
   const url = "https://gate.whapi.cloud" + pathTmpl + qs;
-  const method = "GET";
+  const method = "DELETE";
 
   const init = { method, headers };
   

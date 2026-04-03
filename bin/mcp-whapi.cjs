@@ -5,7 +5,7 @@ const path = require('path');
 
 const serverPath = path.resolve(__dirname, '..', 'server.mjs');
 
-const cp = spawn(process.execPath, ['--experimental-modules', serverPath], {
+const cp = spawn(process.execPath, [serverPath], {
   stdio: 'inherit',
   env: process.env,
 });

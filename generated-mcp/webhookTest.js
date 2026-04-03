@@ -30,6 +30,8 @@ module.exports = async function webhookTest(args, env = process.env) {
     init.headers['Content-Type'] = 'application/json';
     const bodyObj = {};
     if (args.hasOwnProperty('type')) bodyObj['type'] = args['type'];
+    if (args.hasOwnProperty('send_undecrypted_ad')) bodyObj['send_undecrypted_ad'] = args['send_undecrypted_ad'];
+    if (args.hasOwnProperty('webhook_max_age_seconds')) bodyObj['webhook_max_age_seconds'] = args['webhook_max_age_seconds'];
     if (args.hasOwnProperty('headers')) bodyObj['headers'] = args['headers'];
     if (args.hasOwnProperty('url')) bodyObj['url'] = args['url'];
     if (args.hasOwnProperty('mode')) bodyObj['mode'] = args['mode'];
