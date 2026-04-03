@@ -1,6 +1,6 @@
 {
   "name": "whapi-mcp",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "private": false,
   "type": "commonjs",
   "bin": {
