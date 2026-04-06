@@ -49,6 +49,14 @@ name: sendMessageText
 arguments: { "to": "1234567890@s.whatsapp.net", "body": "Hello" }
 ```
 
+## Agent Skills
+
+**WHAPI Agent Skill** — a structured guide for AI agents is now available. Install it to give your agent accurate knowledge of Chat ID formats, MCP setup, webhook configuration, message types, and safe broadcast patterns — preventing the most common mistakes before they happen.
+
+```bash
+npx skills add Whapi-Cloud/whapi-agent-skills
+```
+
 ## License
 
 MIT
