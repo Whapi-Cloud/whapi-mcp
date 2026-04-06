@@ -693,7 +693,8 @@
           "type": "object"
         },
         "webhooks": {
-          "type": "array"
+          "type": "array",
+          "description": "Webhooks. Array of objects. Each item: { send_undecrypted_ad, webhook_max_age_seconds, headers, url*, mode, events } (* = required)"
         },
         "proxy": {
           "type": "string",
@@ -6224,7 +6225,8 @@
           "description": "Message ID of the message to be edited"
         },
         "list": {
-          "type": "array"
+          "type": "array",
+          "description": "Array of objects. Each item: { name, vcard } (* = required)"
         }
       },
       "required": [
@@ -13558,7 +13560,8 @@
           "type": "string"
         },
         "participants": {
-          "type": "array"
+          "type": "array",
+          "description": "Array of: Contact ID"
         }
       },
       "required": [
@@ -14523,7 +14526,8 @@
           "description": "Group ID"
         },
         "participants": {
-          "type": "array"
+          "type": "array",
+          "description": "Array of: Contact ID"
         }
       },
       "required": [
@@ -14669,7 +14673,8 @@
           "description": "Group ID"
         },
         "participants": {
-          "type": "array"
+          "type": "array",
+          "description": "Array of: Contact ID"
         }
       },
       "required": [
@@ -15225,7 +15230,8 @@
           "description": "Group ID"
         },
         "participants": {
-          "type": "array"
+          "type": "array",
+          "description": "Array of: Contact ID"
         }
       },
       "required": [
@@ -15371,7 +15377,8 @@
           "description": "Group ID"
         },
         "participants": {
-          "type": "array"
+          "type": "array",
+          "description": "Array of: Contact ID"
         }
       },
       "required": [
@@ -27094,7 +27101,8 @@
           "type": "boolean"
         },
         "participants": {
-          "type": "array"
+          "type": "array",
+          "description": "Array of: Contact ID"
         }
       },
       "required": [
@@ -28046,7 +28054,8 @@
           "description": "Community ID"
         },
         "participants": {
-          "type": "array"
+          "type": "array",
+          "description": "Array of: Contact ID"
         }
       },
       "required": [
@@ -28192,7 +28201,8 @@
           "description": "Community ID"
         },
         "participants": {
-          "type": "array"
+          "type": "array",
+          "description": "Array of: Contact ID"
         }
       },
       "required": [
@@ -28338,7 +28348,8 @@
           "description": "Community ID"
         },
         "participants": {
-          "type": "array"
+          "type": "array",
+          "description": "Array of: Contact ID"
         }
       },
       "required": [
@@ -28484,7 +28495,8 @@
           "description": "Community ID"
         },
         "participants": {
-          "type": "array"
+          "type": "array",
+          "description": "Array of: Contact ID"
         }
       },
       "required": [
