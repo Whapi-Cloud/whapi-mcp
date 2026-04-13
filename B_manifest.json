@@ -690,7 +690,8 @@
           "description": "Stores callbacks on disk until they are successfully acknowledged by the Webhook or not. Restart required."
         },
         "media": {
-          "type": "object"
+          "type": "object",
+          "description": "Object with fields: { auto_download, init_avatars }"
         },
         "webhooks": {
           "type": "array",
@@ -6904,18 +6905,19 @@
         },
         "header": {
           "type": "object",
-          "description": "Header of interactive"
+          "description": "Header of interactive. Object with fields: { text }"
         },
         "body": {
           "type": "object",
-          "description": "Body of interactive"
+          "description": "Body of interactive. Object with fields: { text }"
         },
         "footer": {
           "type": "object",
-          "description": "Footer of interactive"
+          "description": "Footer of interactive. Object with fields: { text }"
         },
         "action": {
-          "type": "object"
+          "type": "object",
+          "description": "Object with fields: { list, buttons, product }"
         },
         "type": {
           "type": "string",
@@ -7263,7 +7265,7 @@
         },
         "body": {
           "type": "object",
-          "description": "Body of carousel"
+          "description": "Body of carousel. Object with fields: { text }"
         },
         "cards": {
           "type": "array",
@@ -22155,7 +22157,8 @@
           "description": "Email address to contact the business\nMaximum of 128 characters"
         },
         "hours": {
-          "type": "object"
+          "type": "object",
+          "description": "Object with fields: { timeZone, config }"
         },
         "websites": {
           "type": "array",

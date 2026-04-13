@@ -80,12 +80,30 @@ function buildZodShapeFromInputSchema(inputSchema) {
 // Tools that permanently reconfigure the WhatsApp channel — flag for AI safety
 const DESTRUCTIVE_TOOLS = new Set(['updateChannelSettings', 'webhookTest']);
 
+// Detailed usage hints for polymorphic tools where flat inputSchema is not enough
+const TOOL_USAGE_HINTS = {
+  sendMessageInteractive: `
+
+USAGE BY TYPE (field "type" determines "action" structure):
+
+type:"list" -> action: { list: { sections: [{ title: "Section", rows: [{ title: "Row", id: "r1", description: "Optional" }] }], label: "Button text" } }
+
+type:"button" -> action: { buttons: [{ type: "quick_reply", title: "Button1", id: "id1" }, { type: "quick_reply", title: "Button2", id: "id2" }] }
+Button types: quick_reply, call (needs phone_number), copy (needs copy_code), url (needs url field)
+
+type:"product" -> action: { product: { catalog_id: "...", product_id: "..." } }
+
+header/body/footer each take: { text: "string" }
+Required fields: to, action, type`
+};
+
 for (const tool of manifest) {
   const name = tool.toolName;
   const baseDescription = tool.description || tool.summary || `HTTP ${tool.http.method} ${tool.http.path}`;
+  const hint = TOOL_USAGE_HINTS[name] || '';
   const description = DESTRUCTIVE_TOOLS.has(name)
-    ? `[DESTRUCTIVE] Permanently reconfigures WhatsApp channel settings (webhooks, proxy). Requires explicit human confirmation before execution. ${baseDescription}`
-    : baseDescription;
+    ? `[DESTRUCTIVE] Permanently reconfigures WhatsApp channel settings (webhooks, proxy). Requires explicit human confirmation before execution. ${baseDescription}${hint}`
+    : `${baseDescription}${hint}`;
 
   const paramsShape = buildZodShapeFromInputSchema(tool.inputSchema);
   const registerWithSchema = paramsShape && Object.keys(paramsShape).length > 0;
