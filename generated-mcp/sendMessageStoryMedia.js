@@ -39,6 +39,7 @@ module.exports = async function sendMessageStoryMedia(args, env = process.env) {
     if (args.hasOwnProperty('height')) bodyObj['height'] = args['height'];
     if (args.hasOwnProperty('contacts')) bodyObj['contacts'] = args['contacts'];
     if (args.hasOwnProperty('exclude_contacts')) bodyObj['exclude_contacts'] = args['exclude_contacts'];
+    if (args.hasOwnProperty('allow_reshare')) bodyObj['allow_reshare'] = args['allow_reshare'];
     init.body = JSON.stringify(bodyObj);
   }
   

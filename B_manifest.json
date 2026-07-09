@@ -555,14 +555,32 @@
               "default": false,
               "type": "boolean"
             },
+            "auto_read_messages": {
+              "description": "When enabled, all incoming messages are automatically marked as read as soon as they are received by the API channel. You do not need to mark each message as read manually through the API.",
+              "default": false,
+              "type": "boolean"
+            },
+            "mock_pairing_code": {
+              "description": "Fixed 8-character pairing code for link-code authorization. When omitted or empty, a random code is generated for every request.",
+              "type": "string"
+            },
             "ignored_presences": {
               "description": "List of presences to ignore.",
               "type": "array",
               "items": {
                 "type": "string",
                 "description": "Chat ID",
-                "pattern": "^[\\d-]{10,31}@[\\w\\.]{1,}$"
+                "pattern": "^(?:0@(?:c\\.us|s\\.whatsapp\\.net)|[\\d-]{10,31}@[\\w\\.]{1,})$"
               }
+            },
+            "data_mode": {
+              "description": "Data presentation mode",
+              "type": "string",
+              "enum": [
+                "original",
+                "replace",
+                "extend"
+              ]
             }
           }
         },
@@ -629,10 +647,34 @@
             "description": "When true, all messages will be cached after the connection. If false, old messages will selectively not be cached, allowing large accounts to run faster. Working after reconnect."
           },
           {
+            "name": "auto_read_messages",
+            "type": "boolean",
+            "required": false,
+            "default": false,
+            "description": "When enabled, all incoming messages are automatically marked as read as soon as they are received by the API channel. You do not need to mark each message as read manually through the API."
+          },
+          {
+            "name": "mock_pairing_code",
+            "type": "string",
+            "required": false,
+            "description": "Fixed 8-character pairing code for link-code authorization. When omitted or empty, a random code is generated for every request."
+          },
+          {
             "name": "ignored_presences",
             "type": "array",
             "required": false,
             "description": "List of presences to ignore."
+          },
+          {
+            "name": "data_mode",
+            "type": "string",
+            "required": false,
+            "enum": [
+              "original",
+              "replace",
+              "extend"
+            ],
+            "description": "Data presentation mode"
           }
         ]
       },
@@ -715,9 +757,27 @@
           "description": "When true, all messages will be cached after the connection. If false, old messages will selectively not be cached, allowing large accounts to run faster. Working after reconnect.",
           "default": false
         },
+        "auto_read_messages": {
+          "type": "boolean",
+          "description": "When enabled, all incoming messages are automatically marked as read as soon as they are received by the API channel. You do not need to mark each message as read manually through the API.",
+          "default": false
+        },
+        "mock_pairing_code": {
+          "type": "string",
+          "description": "Fixed 8-character pairing code for link-code authorization. When omitted or empty, a random code is generated for every request."
+        },
         "ignored_presences": {
           "type": "array",
           "description": "List of presences to ignore."
+        },
+        "data_mode": {
+          "type": "string",
+          "description": "Data presentation mode",
+          "enum": [
+            "original",
+            "replace",
+            "extend"
+          ]
         }
       },
       "required": []
@@ -2084,6 +2144,111 @@
     ]
   },
   {
+    "toolName": "getAccountRegistrationDate",
+    "summary": "Get account registration date",
+    "description": "Retrieve account creation and last registration timestamps for the current WhatsApp account",
+    "tags": [
+      "Users"
+    ],
+    "http": {
+      "method": "GET",
+      "path": "/users/account/registration_date",
+      "pathParams": [],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": null,
+        "schema": null,
+        "fields": []
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X GET -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/users/account/registration_date\""
+      }
+    ]
+  },
+  {
     "toolName": "getMessages",
     "summary": "Get messages",
     "description": "The method contains a list of all received and sent messages in a particular chat. Sorting by descending date of message sending.",
@@ -2528,12 +2693,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "body": {
               "description": "Message text",
@@ -2559,7 +2724,7 @@
               "description": "The numbers of the mentioned users",
               "items": {
                 "type": "string",
-                "pattern": "^\\d{7,15}(@s\\.whatsapp\\.net)?$|^\\d{10,31}@g\\.us$"
+                "pattern": "^\\d{7,15}(@(s\\.whatsapp\\.net|lid))?$|^\\d{10,31}@g\\.us$"
               }
             }
           }
@@ -2773,12 +2938,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "media": {
               "oneOf": [
@@ -2840,7 +3005,7 @@
               "description": "The numbers of the mentioned users",
               "items": {
                 "type": "string",
-                "pattern": "^\\d{7,15}(@s\\.whatsapp\\.net)?$|^\\d{10,31}@g\\.us$"
+                "pattern": "^\\d{7,15}(@(s\\.whatsapp\\.net|lid))?$|^\\d{10,31}@g\\.us$"
               }
             },
             "view_once": {
@@ -3104,12 +3269,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "media": {
               "oneOf": [
@@ -3171,7 +3336,7 @@
               "description": "The numbers of the mentioned users",
               "items": {
                 "type": "string",
-                "pattern": "^\\d{7,15}(@s\\.whatsapp\\.net)?$|^\\d{10,31}@g\\.us$"
+                "pattern": "^\\d{7,15}(@(s\\.whatsapp\\.net|lid))?$|^\\d{10,31}@g\\.us$"
               }
             },
             "view_once": {
@@ -3439,12 +3604,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "media": {
               "oneOf": [
@@ -3506,7 +3671,7 @@
               "description": "The numbers of the mentioned users",
               "items": {
                 "type": "string",
-                "pattern": "^\\d{7,15}(@s\\.whatsapp\\.net)?$|^\\d{10,31}@g\\.us$"
+                "pattern": "^\\d{7,15}(@(s\\.whatsapp\\.net|lid))?$|^\\d{10,31}@g\\.us$"
               }
             },
             "view_once": {
@@ -3774,12 +3939,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "media": {
               "oneOf": [
@@ -4105,12 +4270,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "media": {
               "oneOf": [
@@ -4380,12 +4545,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "media": {
               "oneOf": [
@@ -4674,12 +4839,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "media": {
               "oneOf": [
@@ -4944,12 +5109,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "body": {
               "description": "Message text",
@@ -5013,7 +5178,7 @@
               "description": "The numbers of the mentioned users",
               "items": {
                 "type": "string",
-                "pattern": "^\\d{7,15}(@s\\.whatsapp\\.net)?$|^\\d{10,31}@g\\.us$"
+                "pattern": "^\\d{7,15}(@(s\\.whatsapp\\.net|lid))?$|^\\d{10,31}@g\\.us$"
               }
             }
           }
@@ -5274,12 +5439,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "latitude": {
               "format": "double",
@@ -5600,12 +5765,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "latitude": {
               "format": "double",
@@ -5931,12 +6096,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "name": {
               "description": "Name of contact",
@@ -6125,12 +6290,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "list": {
               "type": "array",
@@ -6317,12 +6482,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "title": {
               "type": "string",
@@ -6495,6 +6660,444 @@
     ]
   },
   {
+    "toolName": "sendMessageQuiz",
+    "summary": "Send quiz message",
+    "description": "Send a quiz message to a WhatsApp Channel.",
+    "tags": [
+      "Messages"
+    ],
+    "http": {
+      "method": "POST",
+      "path": "/messages/quiz",
+      "pathParams": [],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": "application/json",
+        "schema": {
+          "title": "Message quiz send parameters",
+          "type": "object",
+          "required": [
+            "correct_option_index",
+            "options",
+            "title",
+            "to"
+          ],
+          "properties": {
+            "to": {
+              "type": "string",
+              "description": "Use the phone number or [Chat ID](https://support.whapi.cloud/help-desk/faq/chat-id.-what-is-it-and-how-to-get-it) of the contact/group/channel to which you want to send the message. Use [Get groups](https://whapi.readme.io/reference/getgroups) to get the group ID.",
+              "pattern": "^[\\d-]{9,31}(@[\\w\\.]{1,})?$",
+              "example": "1234567891@s.whatsapp.net"
+            },
+            "quoted": {
+              "type": "string",
+              "description": "Message ID of the message to be quoted",
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
+            },
+            "edit": {
+              "type": "string",
+              "description": "Message ID of the message to be edited",
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
+            },
+            "title": {
+              "type": "string",
+              "description": "Title of quiz"
+            },
+            "options": {
+              "type": "array",
+              "description": "Options of quiz",
+              "minItems": 2,
+              "maxItems": 12,
+              "items": {
+                "type": "string"
+              }
+            },
+            "correct_option_index": {
+              "type": "integer",
+              "description": "Zero-based index of the correct quiz option",
+              "minimum": 0
+            },
+            "end_time": {
+              "type": "integer",
+              "description": "Quiz end timestamp"
+            },
+            "hide_participant_name": {
+              "type": "boolean",
+              "description": "Hide participant names in quiz results"
+            },
+            "allow_add_option": {
+              "type": "boolean",
+              "description": "Allow participants to add options"
+            }
+          }
+        },
+        "fields": [
+          {
+            "name": "to",
+            "type": "string",
+            "required": true,
+            "description": "Use the phone number or [Chat ID](https://support.whapi.cloud/help-desk/faq/chat-id.-what-is-it-and-how-to-get-it) of the contact/group/channel to which you want to send the message. Use [Get groups](https://whapi.readme.io/reference/getgroups) to get the group ID."
+          },
+          {
+            "name": "quoted",
+            "type": "string",
+            "required": false,
+            "description": "Message ID of the message to be quoted"
+          },
+          {
+            "name": "edit",
+            "type": "string",
+            "required": false,
+            "description": "Message ID of the message to be edited"
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "required": true,
+            "description": "Title of quiz"
+          },
+          {
+            "name": "options",
+            "type": "array",
+            "required": true,
+            "description": "Options of quiz"
+          },
+          {
+            "name": "correct_option_index",
+            "type": "integer",
+            "required": true,
+            "description": "Zero-based index of the correct quiz option"
+          },
+          {
+            "name": "end_time",
+            "type": "integer",
+            "required": false,
+            "description": "Quiz end timestamp"
+          },
+          {
+            "name": "hide_participant_name",
+            "type": "boolean",
+            "required": false,
+            "description": "Hide participant names in quiz results"
+          },
+          {
+            "name": "allow_add_option",
+            "type": "boolean",
+            "required": false,
+            "description": "Allow participants to add options"
+          }
+        ]
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "to": {
+          "type": "string",
+          "description": "Use the phone number or [Chat ID](https://support.whapi.cloud/help-desk/faq/chat-id.-what-is-it-and-how-to-get-it) of the contact/group/channel to which you want to send the message. Use [Get groups](https://whapi.readme.io/reference/getgroups) to get the group ID."
+        },
+        "quoted": {
+          "type": "string",
+          "description": "Message ID of the message to be quoted"
+        },
+        "edit": {
+          "type": "string",
+          "description": "Message ID of the message to be edited"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of quiz"
+        },
+        "options": {
+          "type": "array",
+          "description": "Options of quiz"
+        },
+        "correct_option_index": {
+          "type": "integer",
+          "description": "Zero-based index of the correct quiz option"
+        },
+        "end_time": {
+          "type": "integer",
+          "description": "Quiz end timestamp"
+        },
+        "hide_participant_name": {
+          "type": "boolean",
+          "description": "Hide participant names in quiz results"
+        },
+        "allow_add_option": {
+          "type": "boolean",
+          "description": "Allow participants to add options"
+        }
+      },
+      "required": [
+        "to",
+        "title",
+        "options",
+        "correct_option_index"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X POST -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/messages/quiz\""
+      }
+    ]
+  },
+  {
+    "toolName": "sendMessageQuestion",
+    "summary": "Send question message",
+    "description": "Send a question message to a WhatsApp Channel.",
+    "tags": [
+      "Messages"
+    ],
+    "http": {
+      "method": "POST",
+      "path": "/messages/question",
+      "pathParams": [],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": "application/json",
+        "schema": {
+          "title": "Message question send parameters",
+          "type": "object",
+          "required": [
+            "body",
+            "to"
+          ],
+          "properties": {
+            "to": {
+              "type": "string",
+              "description": "Use the phone number or [Chat ID](https://support.whapi.cloud/help-desk/faq/chat-id.-what-is-it-and-how-to-get-it) of the contact/group/channel to which you want to send the message. Use [Get groups](https://whapi.readme.io/reference/getgroups) to get the group ID.",
+              "pattern": "^[\\d-]{9,31}(@[\\w\\.]{1,})?$",
+              "example": "1234567891@s.whatsapp.net"
+            },
+            "quoted": {
+              "type": "string",
+              "description": "Message ID of the message to be quoted",
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
+            },
+            "edit": {
+              "type": "string",
+              "description": "Message ID of the message to be edited",
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
+            },
+            "body": {
+              "type": "string",
+              "description": "Question text"
+            }
+          }
+        },
+        "fields": [
+          {
+            "name": "to",
+            "type": "string",
+            "required": true,
+            "description": "Use the phone number or [Chat ID](https://support.whapi.cloud/help-desk/faq/chat-id.-what-is-it-and-how-to-get-it) of the contact/group/channel to which you want to send the message. Use [Get groups](https://whapi.readme.io/reference/getgroups) to get the group ID."
+          },
+          {
+            "name": "quoted",
+            "type": "string",
+            "required": false,
+            "description": "Message ID of the message to be quoted"
+          },
+          {
+            "name": "edit",
+            "type": "string",
+            "required": false,
+            "description": "Message ID of the message to be edited"
+          },
+          {
+            "name": "body",
+            "type": "string",
+            "required": true,
+            "description": "Question text"
+          }
+        ]
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "to": {
+          "type": "string",
+          "description": "Use the phone number or [Chat ID](https://support.whapi.cloud/help-desk/faq/chat-id.-what-is-it-and-how-to-get-it) of the contact/group/channel to which you want to send the message. Use [Get groups](https://whapi.readme.io/reference/getgroups) to get the group ID."
+        },
+        "quoted": {
+          "type": "string",
+          "description": "Message ID of the message to be quoted"
+        },
+        "edit": {
+          "type": "string",
+          "description": "Message ID of the message to be edited"
+        },
+        "body": {
+          "type": "string",
+          "description": "Question text"
+        }
+      },
+      "required": [
+        "to",
+        "body"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X POST -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/messages/question\""
+      }
+    ]
+  },
+  {
     "toolName": "sendMessageInteractive",
     "summary": "🎮 Send interactive message",
     "description": "This endpoint is responsible for sending messages with buttons. The section is constantly updated as the functionality of buttons depends on WhatsApp updates. Attention! The functionality of sending messages with buttons is not stable! For more information, please visit the [Button Status topic](https://support.whapi.cloud/help-desk/faq/current-status-of-buttons-on-whatsapp).",
@@ -6520,7 +7123,9 @@
           "type": "object",
           "required": [
             "action",
-            "to"
+            "body",
+            "to",
+            "type"
           ],
           "description": "Media file to send. You can use preuploaded file or upload file on the fly. \nUse preupload files if you want to send same file to multiple chats and\nso as not to disturb the order of messages.\n",
           "properties": {
@@ -6533,12 +7138,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "header": {
               "type": "object",
@@ -6780,7 +7385,7 @@
           {
             "name": "body",
             "type": "object",
-            "required": false,
+            "required": true,
             "description": "Body of interactive"
           },
           {
@@ -6797,7 +7402,7 @@
           {
             "name": "type",
             "type": "string",
-            "required": false,
+            "required": true,
             "enum": [
               "list",
               "button",
@@ -6963,7 +7568,9 @@
       },
       "required": [
         "to",
-        "action"
+        "body",
+        "action",
+        "type"
       ]
     },
     "outputSchema": {
@@ -7047,12 +7654,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "body": {
               "type": "object",
@@ -7359,12 +7966,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "media": {
               "oneOf": [
@@ -7711,7 +8318,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             },
             "exclude_contacts": {
@@ -7720,8 +8327,13 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
+            },
+            "allow_reshare": {
+              "type": "boolean",
+              "description": "Allow viewers to reshare the story",
+              "default": true
             },
             "background_color": {
               "type": "string",
@@ -7818,6 +8430,13 @@
             "type": "array",
             "required": false,
             "description": "List of contacts to exclude"
+          },
+          {
+            "name": "allow_reshare",
+            "type": "boolean",
+            "required": false,
+            "default": true,
+            "description": "Allow viewers to reshare the story"
           },
           {
             "name": "background_color",
@@ -7929,6 +8548,11 @@
         "exclude_contacts": {
           "type": "array",
           "description": "List of contacts to exclude"
+        },
+        "allow_reshare": {
+          "type": "boolean",
+          "description": "Allow viewers to reshare the story",
+          "default": true
         },
         "background_color": {
           "type": "string",
@@ -8087,7 +8711,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             },
             "exclude_contacts": {
@@ -8096,8 +8720,13 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
+            },
+            "allow_reshare": {
+              "type": "boolean",
+              "description": "Allow viewers to reshare the story",
+              "default": true
             },
             "background_color": {
               "type": "string",
@@ -8161,6 +8790,13 @@
             "type": "array",
             "required": false,
             "description": "List of contacts to exclude"
+          },
+          {
+            "name": "allow_reshare",
+            "type": "boolean",
+            "required": false,
+            "default": true,
+            "description": "Allow viewers to reshare the story"
           },
           {
             "name": "background_color",
@@ -8241,6 +8877,11 @@
         "exclude_contacts": {
           "type": "array",
           "description": "List of contacts to exclude"
+        },
+        "allow_reshare": {
+          "type": "boolean",
+          "description": "Allow viewers to reshare the story",
+          "default": true
         },
         "background_color": {
           "type": "string",
@@ -8385,7 +9026,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             },
             "exclude_contacts": {
@@ -8394,8 +9035,13 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
+            },
+            "allow_reshare": {
+              "type": "boolean",
+              "description": "Allow viewers to reshare the story",
+              "default": true
             }
           }
         },
@@ -8458,6 +9104,13 @@
             "type": "array",
             "required": false,
             "description": "List of contacts to exclude"
+          },
+          {
+            "name": "allow_reshare",
+            "type": "boolean",
+            "required": false,
+            "default": true,
+            "description": "Allow viewers to reshare the story"
           }
         ]
       },
@@ -8535,6 +9188,11 @@
         "exclude_contacts": {
           "type": "array",
           "description": "List of contacts to exclude"
+        },
+        "allow_reshare": {
+          "type": "boolean",
+          "description": "Allow viewers to reshare the story",
+          "default": true
         }
       },
       "required": [
@@ -8619,7 +9277,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             },
             "exclude_contacts": {
@@ -8628,8 +9286,13 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
+            },
+            "allow_reshare": {
+              "type": "boolean",
+              "description": "Allow viewers to reshare the story",
+              "default": true
             },
             "caption": {
               "description": "Optional. Text caption under the media.",
@@ -8677,6 +9340,13 @@
             "type": "array",
             "required": false,
             "description": "List of contacts to exclude"
+          },
+          {
+            "name": "allow_reshare",
+            "type": "boolean",
+            "required": false,
+            "default": true,
+            "description": "Allow viewers to reshare the story"
           },
           {
             "name": "caption",
@@ -8759,6 +9429,11 @@
         "exclude_contacts": {
           "type": "array",
           "description": "List of contacts to exclude"
+        },
+        "allow_reshare": {
+          "type": "boolean",
+          "description": "Allow viewers to reshare the story",
+          "default": true
         },
         "caption": {
           "type": "string",
@@ -10227,6 +10902,149 @@
     ]
   },
   {
+    "toolName": "commentMessage",
+    "summary": "Comment on community announcement",
+    "description": "Send a text comment to a community announcement message.",
+    "tags": [
+      "Messages"
+    ],
+    "http": {
+      "method": "POST",
+      "path": "/messages/{MessageID}/comment",
+      "pathParams": [
+        {
+          "name": "MessageID",
+          "type": "string",
+          "required": true,
+          "description": "Message ID"
+        }
+      ],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": "application/json",
+        "schema": {
+          "title": "Comment to message",
+          "type": "object",
+          "properties": {
+            "body": {
+              "type": "string",
+              "description": "Text comment body"
+            }
+          },
+          "required": [
+            "body"
+          ]
+        },
+        "fields": [
+          {
+            "name": "body",
+            "type": "string",
+            "required": true,
+            "description": "Text comment body"
+          }
+        ]
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "MessageID": {
+          "type": "string",
+          "description": "Message ID"
+        },
+        "body": {
+          "type": "string",
+          "description": "Text comment body"
+        }
+      },
+      "required": [
+        "MessageID",
+        "body"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X POST -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/messages/{MessageID}/comment\""
+      }
+    ]
+  },
+  {
     "toolName": "sendEvent",
     "summary": "Send event",
     "description": "This method is responsible for sending a event.",
@@ -11346,7 +12164,7 @@
             "phone": {
               "type": "string",
               "description": "Contact ID",
-              "pattern": "^([\\d]{7,15})?$"
+              "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
             },
             "name": {
               "type": "string"
@@ -11466,7 +12284,7 @@
   {
     "toolName": "checkPhones",
     "summary": "Check phones",
-    "description": "This method returns whether or not the number has Whatsapp. Batch check provisioning is supported, and there is no batch check limit. However, an atypical mass check can draw attention to your number, so we advise [balancing the check between channels](https://support.whapi.cloud/help-desk/faq/checking-if-the-number-has-whatsapp)",
+    "description": "Use this method to check whether phone numbers are registered on WhatsApp. This is the correct and recommended way to verify if a number has WhatsApp. Batch check is supported with no limit; however, atypical mass checks may draw attention to your number, so balance checks between channels.",
     "tags": [
       "Contacts"
     ],
@@ -11777,12 +12595,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "name": {
               "description": "Name of contact",
@@ -12038,125 +12856,6 @@
         "name": "happy-path",
         "args": {},
         "curl": "curl -X DELETE -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/contacts/{ContactID}\""
-      }
-    ]
-  },
-  {
-    "toolName": "checkExist",
-    "summary": "Check exist",
-    "description": "The method individually checks for a number in WhatsApp without additional information",
-    "tags": [
-      "Contacts"
-    ],
-    "http": {
-      "method": "HEAD",
-      "path": "/contacts/{ContactID}",
-      "pathParams": [
-        {
-          "name": "ContactID",
-          "type": "string",
-          "required": true,
-          "description": "Contact ID"
-        }
-      ],
-      "queryParams": [],
-      "headers": [
-        {
-          "name": "Authorization",
-          "value": "Bearer ${API_TOKEN}",
-          "required": true
-        }
-      ],
-      "requestBody": {
-        "contentType": null,
-        "schema": null,
-        "fields": []
-      },
-      "response": {
-        "contentTypes": [
-          "application/json"
-        ],
-        "successStatusRange": [
-          200,
-          299
-        ]
-      },
-      "pagination": {
-        "enabled": false,
-        "params": {
-          "limitParam": "limit",
-          "offsetParam": "offset",
-          "pageParam": null,
-          "cursorParam": null
-        }
-      },
-      "timeouts": {
-        "requestMs": 30000
-      },
-      "retries": {
-        "enabled": false,
-        "maxAttempts": 0,
-        "backoffMs": 0
-      }
-    },
-    "security": {
-      "type": "bearer",
-      "envTokenName": "API_TOKEN",
-      "headerName": "Authorization",
-      "headerTemplate": "Bearer ${API_TOKEN}"
-    },
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "ContactID": {
-          "type": "string",
-          "description": "Contact ID"
-        }
-      },
-      "required": [
-        "ContactID"
-      ]
-    },
-    "outputSchema": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "integer"
-        },
-        "content": {}
-      }
-    },
-    "errorMapping": [
-      {
-        "status": 400,
-        "error": "BadRequest"
-      },
-      {
-        "status": 401,
-        "error": "Unauthorized"
-      },
-      {
-        "status": 403,
-        "error": "Forbidden"
-      },
-      {
-        "status": 404,
-        "error": "NotFound"
-      },
-      {
-        "status": 429,
-        "error": "RateLimited"
-      },
-      {
-        "status": 500,
-        "error": "ServerError"
-      }
-    ],
-    "examples": [
-      {
-        "name": "happy-path",
-        "args": {},
-        "curl": "curl -X HEAD -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/contacts/{ContactID}\""
       }
     ]
   },
@@ -12420,6 +13119,125 @@
     ]
   },
   {
+    "toolName": "getContactAbout",
+    "summary": "Get contact about",
+    "description": "получить About-текст WhatsApp-профиля по номеру/ContactID.",
+    "tags": [
+      "Contacts"
+    ],
+    "http": {
+      "method": "GET",
+      "path": "/contacts/{ContactID}/about",
+      "pathParams": [
+        {
+          "name": "ContactID",
+          "type": "string",
+          "required": true,
+          "description": "Contact ID"
+        }
+      ],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": null,
+        "schema": null,
+        "fields": []
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "ContactID": {
+          "type": "string",
+          "description": "Contact ID"
+        }
+      },
+      "required": [
+        "ContactID"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X GET -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/contacts/{ContactID}/about\""
+      }
+    ]
+  },
+  {
     "toolName": "getLidByIds",
     "summary": "Get LIDs by IDs",
     "description": "Retrieve Linked IDs (LIDs) for specified user IDs",
@@ -12654,6 +13472,125 @@
         "name": "happy-path",
         "args": {},
         "curl": "curl -X GET -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/contacts/lids/{ContactID}\""
+      }
+    ]
+  },
+  {
+    "toolName": "getIdByLid",
+    "summary": "Get ID by LID",
+    "description": "Retrieve ID for a single user",
+    "tags": [
+      "Contacts"
+    ],
+    "http": {
+      "method": "GET",
+      "path": "/contacts/ids/{ContactLID}",
+      "pathParams": [
+        {
+          "name": "ContactLID",
+          "type": "string",
+          "required": true,
+          "description": "Contact LID"
+        }
+      ],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": null,
+        "schema": null,
+        "fields": []
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "ContactLID": {
+          "type": "string",
+          "description": "Contact LID"
+        }
+      },
+      "required": [
+        "ContactLID"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X GET -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/contacts/ids/{ContactLID}\""
       }
     ]
   },
@@ -13504,7 +14441,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             }
           }
@@ -14474,7 +15411,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             }
           }
@@ -14621,7 +15558,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             }
           }
@@ -15178,7 +16115,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             }
           }
@@ -15325,7 +16262,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             }
           }
@@ -15595,12 +16532,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "title": {
               "type": "string",
@@ -15670,7 +16607,7 @@
               "description": "The numbers of the mentioned users",
               "items": {
                 "type": "string",
-                "pattern": "^\\d{7,15}(@s\\.whatsapp\\.net)?$|^\\d{10,31}@g\\.us$"
+                "pattern": "^\\d{7,15}(@(s\\.whatsapp\\.net|lid))?$|^\\d{10,31}@g\\.us$"
               }
             }
           }
@@ -16085,7 +17022,7 @@
             "application": {
               "type": "string",
               "description": "Chat ID",
-              "pattern": "^[\\d-]{10,31}@[\\w\\.]{1,}$"
+              "pattern": "^(?:0@(?:c\\.us|s\\.whatsapp\\.net)|[\\d-]{10,31}@[\\w\\.]{1,})$"
             }
           }
         },
@@ -16229,7 +17166,7 @@
             "application": {
               "type": "string",
               "description": "Chat ID",
-              "pattern": "^[\\d-]{10,31}@[\\w\\.]{1,}$"
+              "pattern": "^(?:0@(?:c\\.us|s\\.whatsapp\\.net)|[\\d-]{10,31}@[\\w\\.]{1,})$"
             }
           }
         },
@@ -16606,7 +17543,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             },
             "exclude_contacts": {
@@ -16615,8 +17552,13 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
+            },
+            "allow_reshare": {
+              "type": "boolean",
+              "description": "Allow viewers to reshare the story",
+              "default": true
             },
             "background_color": {
               "type": "string",
@@ -16713,6 +17655,13 @@
             "type": "array",
             "required": false,
             "description": "List of contacts to exclude"
+          },
+          {
+            "name": "allow_reshare",
+            "type": "boolean",
+            "required": false,
+            "default": true,
+            "description": "Allow viewers to reshare the story"
           },
           {
             "name": "background_color",
@@ -16825,6 +17774,11 @@
           "type": "array",
           "description": "List of contacts to exclude"
         },
+        "allow_reshare": {
+          "type": "boolean",
+          "description": "Allow viewers to reshare the story",
+          "default": true
+        },
         "background_color": {
           "type": "string",
           "description": "Background color of the story (ARGB)",
@@ -16929,7 +17883,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             },
             "exclude_contacts": {
@@ -16938,8 +17892,13 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
+            },
+            "allow_reshare": {
+              "type": "boolean",
+              "description": "Allow viewers to reshare the story",
+              "default": true
             },
             "caption": {
               "description": "Optional. Text caption under the media.",
@@ -16987,6 +17946,13 @@
             "type": "array",
             "required": false,
             "description": "List of contacts to exclude"
+          },
+          {
+            "name": "allow_reshare",
+            "type": "boolean",
+            "required": false,
+            "default": true,
+            "description": "Allow viewers to reshare the story"
           },
           {
             "name": "caption",
@@ -17069,6 +18035,11 @@
         "exclude_contacts": {
           "type": "array",
           "description": "List of contacts to exclude"
+        },
+        "allow_reshare": {
+          "type": "boolean",
+          "description": "Allow viewers to reshare the story",
+          "default": true
         },
         "caption": {
           "type": "string",
@@ -17236,7 +18207,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             },
             "exclude_contacts": {
@@ -17245,8 +18216,13 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
+            },
+            "allow_reshare": {
+              "type": "boolean",
+              "description": "Allow viewers to reshare the story",
+              "default": true
             }
           }
         },
@@ -17309,6 +18285,13 @@
             "type": "array",
             "required": false,
             "description": "List of contacts to exclude"
+          },
+          {
+            "name": "allow_reshare",
+            "type": "boolean",
+            "required": false,
+            "default": true,
+            "description": "Allow viewers to reshare the story"
           }
         ]
       },
@@ -17386,6 +18369,11 @@
         "exclude_contacts": {
           "type": "array",
           "description": "List of contacts to exclude"
+        },
+        "allow_reshare": {
+          "type": "boolean",
+          "description": "Allow viewers to reshare the story",
+          "default": true
         }
       },
       "required": [
@@ -17522,7 +18510,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             },
             "exclude_contacts": {
@@ -17531,8 +18519,13 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
+            },
+            "allow_reshare": {
+              "type": "boolean",
+              "description": "Allow viewers to reshare the story",
+              "default": true
             },
             "background_color": {
               "type": "string",
@@ -17596,6 +18589,13 @@
             "type": "array",
             "required": false,
             "description": "List of contacts to exclude"
+          },
+          {
+            "name": "allow_reshare",
+            "type": "boolean",
+            "required": false,
+            "default": true,
+            "description": "Allow viewers to reshare the story"
           },
           {
             "name": "background_color",
@@ -17676,6 +18676,11 @@
         "exclude_contacts": {
           "type": "array",
           "description": "List of contacts to exclude"
+        },
+        "allow_reshare": {
+          "type": "boolean",
+          "description": "Allow viewers to reshare the story",
+          "default": true
         },
         "background_color": {
           "type": "string",
@@ -17887,7 +18892,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             },
             "exclude_contacts": {
@@ -17896,7 +18901,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             }
           }
@@ -19942,6 +20947,136 @@
     ]
   },
   {
+    "toolName": "addNewsletterMessagePaidPartnership",
+    "summary": "Label newsletter message as paid partnership",
+    "description": "Adds a paid partnership label to a WhatsApp Channel message",
+    "tags": [
+      "Newsletters"
+    ],
+    "http": {
+      "method": "POST",
+      "path": "/newsletters/{NewsletterID}/messages/{MessageID}/paid_partnership",
+      "pathParams": [
+        {
+          "name": "NewsletterID",
+          "type": "string",
+          "required": true,
+          "description": "Newsletter ID"
+        },
+        {
+          "name": "MessageID",
+          "type": "string",
+          "required": true,
+          "description": "Message ID"
+        }
+      ],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": null,
+        "schema": null,
+        "fields": []
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "NewsletterID": {
+          "type": "string",
+          "description": "Newsletter ID"
+        },
+        "MessageID": {
+          "type": "string",
+          "description": "Message ID"
+        }
+      },
+      "required": [
+        "NewsletterID",
+        "MessageID"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X POST -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/newsletters/{NewsletterID}/messages/{MessageID}/paid_partnership\""
+      }
+    ]
+  },
+  {
     "toolName": "createNewsletterAdminInvite",
     "summary": "Create Newsletter admin-invite",
     "description": "This method is responsible for sending an invitation for WhatsApp Channel administrator. Once the invitation is created, an invitation message will be sent to the contact",
@@ -20645,12 +21780,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "title": {
               "type": "string",
@@ -20720,7 +21855,7 @@
               "description": "The numbers of the mentioned users",
               "items": {
                 "type": "string",
-                "pattern": "^\\d{7,15}(@s\\.whatsapp\\.net)?$|^\\d{10,31}@g\\.us$"
+                "pattern": "^\\d{7,15}(@(s\\.whatsapp\\.net|lid))?$|^\\d{10,31}@g\\.us$"
               }
             }
           }
@@ -21537,13 +22672,13 @@
     ],
     "http": {
       "method": "PUT",
-      "path": "/blacklist/{ContactID}",
+      "path": "/blacklist/{ContactIdOrLid}",
       "pathParams": [
         {
-          "name": "ContactID",
+          "name": "ContactIdOrLid",
           "type": "string",
           "required": true,
-          "description": "Contact ID"
+          "description": "Contact ID or LID"
         }
       ],
       "queryParams": [],
@@ -21595,13 +22730,13 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "ContactID": {
+        "ContactIdOrLid": {
           "type": "string",
-          "description": "Contact ID"
+          "description": "Contact ID or LID"
         }
       },
       "required": [
-        "ContactID"
+        "ContactIdOrLid"
       ]
     },
     "outputSchema": {
@@ -21643,7 +22778,7 @@
       {
         "name": "happy-path",
         "args": {},
-        "curl": "curl -X PUT -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/blacklist/{ContactID}\""
+        "curl": "curl -X PUT -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/blacklist/{ContactIdOrLid}\""
       }
     ]
   },
@@ -21656,13 +22791,13 @@
     ],
     "http": {
       "method": "DELETE",
-      "path": "/blacklist/{ContactID}",
+      "path": "/blacklist/{ContactIdOrLid}",
       "pathParams": [
         {
-          "name": "ContactID",
+          "name": "ContactIdOrLid",
           "type": "string",
           "required": true,
-          "description": "Contact ID"
+          "description": "Contact ID or LID"
         }
       ],
       "queryParams": [],
@@ -21714,13 +22849,13 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "ContactID": {
+        "ContactIdOrLid": {
           "type": "string",
-          "description": "Contact ID"
+          "description": "Contact ID or LID"
         }
       },
       "required": [
-        "ContactID"
+        "ContactIdOrLid"
       ]
     },
     "outputSchema": {
@@ -21762,7 +22897,7 @@
       {
         "name": "happy-path",
         "args": {},
-        "curl": "curl -X DELETE -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/blacklist/{ContactID}\""
+        "curl": "curl -X DELETE -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/blacklist/{ContactIdOrLid}\""
       }
     ]
   },
@@ -23412,12 +24547,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "catalog_id": {
               "description": "Catalog ID",
@@ -24623,12 +25758,12 @@
             "quoted": {
               "type": "string",
               "description": "Message ID of the message to be quoted",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "edit": {
               "type": "string",
               "description": "Message ID of the message to be edited",
-              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,14}(-[A-Za-z0-9._]{4,10})?(-[A-Za-z0-9._]{2,10})?$"
+              "pattern": "^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$"
             },
             "title": {
               "type": "string",
@@ -24703,7 +25838,7 @@
               "description": "The numbers of the mentioned users",
               "items": {
                 "type": "string",
-                "pattern": "^\\d{7,15}(@s\\.whatsapp\\.net)?$|^\\d{10,31}@g\\.us$"
+                "pattern": "^\\d{7,15}(@(s\\.whatsapp\\.net|lid))?$|^\\d{10,31}@g\\.us$"
               }
             }
           }
@@ -25779,6 +26914,216 @@
     ]
   },
   {
+    "toolName": "getReachoutTimelock",
+    "summary": "Get reachout timelock status",
+    "description": "Returns whether the current account is temporarily limited from starting chats.",
+    "tags": [
+      "Business"
+    ],
+    "http": {
+      "method": "GET",
+      "path": "/business/limits/reachout_timelock",
+      "pathParams": [],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": null,
+        "schema": null,
+        "fields": []
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X GET -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/business/limits/reachout_timelock\""
+      }
+    ]
+  },
+  {
+    "toolName": "getNewChatLimit",
+    "summary": "Get new chat limit",
+    "description": "Returns the current account limit for starting new individual chats.",
+    "tags": [
+      "Business"
+    ],
+    "http": {
+      "method": "GET",
+      "path": "/business/limits/new_chat",
+      "pathParams": [],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": null,
+        "schema": null,
+        "fields": []
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X GET -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/business/limits/new_chat\""
+      }
+    ]
+  },
+  {
     "toolName": "getLabels",
     "summary": "Get labels",
     "description": "In this method, you retrieve all your registered labels in your WhatsApp Business",
@@ -26229,6 +27574,269 @@
         "name": "happy-path",
         "args": {},
         "curl": "curl -X GET -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/labels/{LabelID}\""
+      }
+    ]
+  },
+  {
+    "toolName": "deleteLabel",
+    "summary": "Delete label",
+    "description": "Delete label in WhatsApp Business",
+    "tags": [
+      "Labels"
+    ],
+    "http": {
+      "method": "DELETE",
+      "path": "/labels/{LabelID}",
+      "pathParams": [
+        {
+          "name": "LabelID",
+          "type": "string",
+          "required": true,
+          "description": "Label ID"
+        }
+      ],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": null,
+        "schema": null,
+        "fields": []
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "LabelID": {
+          "type": "string",
+          "description": "Label ID"
+        }
+      },
+      "required": [
+        "LabelID"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X DELETE -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/labels/{LabelID}\""
+      }
+    ]
+  },
+  {
+    "toolName": "renameLabel",
+    "summary": "Rename label",
+    "description": "Rename label in WhatsApp Business",
+    "tags": [
+      "Labels"
+    ],
+    "http": {
+      "method": "PATCH",
+      "path": "/labels/{LabelID}",
+      "pathParams": [
+        {
+          "name": "LabelID",
+          "type": "string",
+          "required": true,
+          "description": "Label ID"
+        }
+      ],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": "application/json",
+        "schema": {
+          "title": "Rename Label Request",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Label name",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "fields": [
+          {
+            "name": "name",
+            "type": "string",
+            "required": true,
+            "description": "Label name"
+          }
+        ]
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "LabelID": {
+          "type": "string",
+          "description": "Label ID"
+        },
+        "name": {
+          "type": "string",
+          "description": "Label name"
+        }
+      },
+      "required": [
+        "LabelID",
+        "name"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X PATCH -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/labels/{LabelID}\""
       }
     ]
   },
@@ -27034,7 +28642,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             }
           }
@@ -28003,7 +29611,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             }
           }
@@ -28150,7 +29758,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             }
           }
@@ -28297,7 +29905,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             }
           }
@@ -28444,7 +30052,7 @@
               "items": {
                 "type": "string",
                 "description": "Contact ID",
-                "pattern": "^([\\d]{7,15})?$"
+                "pattern": "^([\\d]{7,15})?(@lid|@s.whatsapp.net)?$"
               }
             }
           }

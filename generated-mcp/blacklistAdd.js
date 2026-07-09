@@ -1,8 +1,8 @@
 const fetch = require('node-fetch');
 module.exports = async function blacklistAdd(args, env = process.env) {
   // Build path with path params
-  let pathTmpl = "/blacklist/{ContactID}";
-  for (const p of [{"name":"ContactID","type":"string","required":true,"description":"Contact ID"}]){
+  let pathTmpl = "/blacklist/{ContactIdOrLid}";
+  for (const p of [{"name":"ContactIdOrLid","type":"string","required":true,"description":"Contact ID or LID"}]){
     const val = args[p.name];
     if (val === undefined || val === null) throw new Error('Missing path param: ' + p.name);
     pathTmpl = pathTmpl.replace('{'+p.name+'}', encodeURIComponent(String(val)));

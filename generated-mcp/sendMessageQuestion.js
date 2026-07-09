@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
-module.exports = async function createStoryText(args, env = process.env) {
+module.exports = async function sendMessageQuestion(args, env = process.env) {
   // Build path with path params
-  let pathTmpl = "/stories/send/text";
+  let pathTmpl = "/messages/question";
   for (const p of []){
     const val = args[p.name];
     if (val === undefined || val === null) throw new Error('Missing path param: ' + p.name);
@@ -29,13 +29,10 @@ module.exports = async function createStoryText(args, env = process.env) {
   if (method !== 'GET'){
     init.headers['Content-Type'] = 'application/json';
     const bodyObj = {};
-    if (args.hasOwnProperty('contacts')) bodyObj['contacts'] = args['contacts'];
-    if (args.hasOwnProperty('exclude_contacts')) bodyObj['exclude_contacts'] = args['exclude_contacts'];
-    if (args.hasOwnProperty('allow_reshare')) bodyObj['allow_reshare'] = args['allow_reshare'];
-    if (args.hasOwnProperty('caption')) bodyObj['caption'] = args['caption'];
-    if (args.hasOwnProperty('background_color')) bodyObj['background_color'] = args['background_color'];
-    if (args.hasOwnProperty('caption_color')) bodyObj['caption_color'] = args['caption_color'];
-    if (args.hasOwnProperty('font_type')) bodyObj['font_type'] = args['font_type'];
+    if (args.hasOwnProperty('to')) bodyObj['to'] = args['to'];
+    if (args.hasOwnProperty('quoted')) bodyObj['quoted'] = args['quoted'];
+    if (args.hasOwnProperty('edit')) bodyObj['edit'] = args['edit'];
+    if (args.hasOwnProperty('body')) bodyObj['body'] = args['body'];
     init.body = JSON.stringify(bodyObj);
   }
   

@@ -40,6 +40,7 @@ module.exports = async function createStory(args, env = process.env) {
     if (args.hasOwnProperty('seconds')) bodyObj['seconds'] = args['seconds'];
     if (args.hasOwnProperty('contacts')) bodyObj['contacts'] = args['contacts'];
     if (args.hasOwnProperty('exclude_contacts')) bodyObj['exclude_contacts'] = args['exclude_contacts'];
+    if (args.hasOwnProperty('allow_reshare')) bodyObj['allow_reshare'] = args['allow_reshare'];
     if (args.hasOwnProperty('background_color')) bodyObj['background_color'] = args['background_color'];
     if (args.hasOwnProperty('caption_color')) bodyObj['caption_color'] = args['caption_color'];
     if (args.hasOwnProperty('font_type')) bodyObj['font_type'] = args['font_type'];

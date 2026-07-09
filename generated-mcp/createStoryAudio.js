@@ -38,6 +38,7 @@ module.exports = async function createStoryAudio(args, env = process.env) {
     if (args.hasOwnProperty('height')) bodyObj['height'] = args['height'];
     if (args.hasOwnProperty('contacts')) bodyObj['contacts'] = args['contacts'];
     if (args.hasOwnProperty('exclude_contacts')) bodyObj['exclude_contacts'] = args['exclude_contacts'];
+    if (args.hasOwnProperty('allow_reshare')) bodyObj['allow_reshare'] = args['allow_reshare'];
     if (args.hasOwnProperty('background_color')) bodyObj['background_color'] = args['background_color'];
     init.body = JSON.stringify(bodyObj);
   }

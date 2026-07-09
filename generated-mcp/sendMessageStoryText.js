@@ -31,6 +31,7 @@ module.exports = async function sendMessageStoryText(args, env = process.env) {
     const bodyObj = {};
     if (args.hasOwnProperty('contacts')) bodyObj['contacts'] = args['contacts'];
     if (args.hasOwnProperty('exclude_contacts')) bodyObj['exclude_contacts'] = args['exclude_contacts'];
+    if (args.hasOwnProperty('allow_reshare')) bodyObj['allow_reshare'] = args['allow_reshare'];
     if (args.hasOwnProperty('caption')) bodyObj['caption'] = args['caption'];
     if (args.hasOwnProperty('background_color')) bodyObj['background_color'] = args['background_color'];
     if (args.hasOwnProperty('caption_color')) bodyObj['caption_color'] = args['caption_color'];

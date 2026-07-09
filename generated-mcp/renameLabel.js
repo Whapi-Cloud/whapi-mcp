@@ -1,8 +1,8 @@
 const fetch = require('node-fetch');
-module.exports = async function createStoryText(args, env = process.env) {
+module.exports = async function renameLabel(args, env = process.env) {
   // Build path with path params
-  let pathTmpl = "/stories/send/text";
-  for (const p of []){
+  let pathTmpl = "/labels/{LabelID}";
+  for (const p of [{"name":"LabelID","type":"string","required":true,"description":"Label ID"}]){
     const val = args[p.name];
     if (val === undefined || val === null) throw new Error('Missing path param: ' + p.name);
     pathTmpl = pathTmpl.replace('{'+p.name+'}', encodeURIComponent(String(val)));
@@ -22,20 +22,14 @@ module.exports = async function createStoryText(args, env = process.env) {
   headers['Authorization'] = 'Bearer ' + (env.API_TOKEN || '');
 
   const url = "https://gate.whapi.cloud" + pathTmpl + qs;
-  const method = "POST";
+  const method = "PATCH";
 
   const init = { method, headers };
   
   if (method !== 'GET'){
     init.headers['Content-Type'] = 'application/json';
     const bodyObj = {};
-    if (args.hasOwnProperty('contacts')) bodyObj['contacts'] = args['contacts'];
-    if (args.hasOwnProperty('exclude_contacts')) bodyObj['exclude_contacts'] = args['exclude_contacts'];
-    if (args.hasOwnProperty('allow_reshare')) bodyObj['allow_reshare'] = args['allow_reshare'];
-    if (args.hasOwnProperty('caption')) bodyObj['caption'] = args['caption'];
-    if (args.hasOwnProperty('background_color')) bodyObj['background_color'] = args['background_color'];
-    if (args.hasOwnProperty('caption_color')) bodyObj['caption_color'] = args['caption_color'];
-    if (args.hasOwnProperty('font_type')) bodyObj['font_type'] = args['font_type'];
+    if (args.hasOwnProperty('name')) bodyObj['name'] = args['name'];
     init.body = JSON.stringify(bodyObj);
   }
   

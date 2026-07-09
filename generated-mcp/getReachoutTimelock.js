@@ -1,8 +1,8 @@
 const fetch = require('node-fetch');
-module.exports = async function checkExist(args, env = process.env) {
+module.exports = async function getReachoutTimelock(args, env = process.env) {
   // Build path with path params
-  let pathTmpl = "/contacts/{ContactID}";
-  for (const p of [{"name":"ContactID","type":"string","required":true,"description":"Contact ID"}]){
+  let pathTmpl = "/business/limits/reachout_timelock";
+  for (const p of []){
     const val = args[p.name];
     if (val === undefined || val === null) throw new Error('Missing path param: ' + p.name);
     pathTmpl = pathTmpl.replace('{'+p.name+'}', encodeURIComponent(String(val)));
@@ -22,7 +22,7 @@ module.exports = async function checkExist(args, env = process.env) {
   headers['Authorization'] = 'Bearer ' + (env.API_TOKEN || '');
 
   const url = "https://gate.whapi.cloud" + pathTmpl + qs;
-  const method = "HEAD";
+  const method = "GET";
 
   const init = { method, headers };
   
