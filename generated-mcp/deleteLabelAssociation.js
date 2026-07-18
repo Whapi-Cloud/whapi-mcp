@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 module.exports = async function deleteLabelAssociation(args, env = process.env) {
   // Build path with path params
   let pathTmpl = "/labels/{LabelID}/{AssociationID}";
-  for (const p of [{"name":"LabelID","type":"string","required":true,"description":"Label ID"},{"name":"AssociationID","type":"string","required":true,"description":"Chat ID or Message ID for label association"}]){
+  for (const p of [{"name":"LabelID","type":"string","required":true,"description":"Label ID"},{"name":"AssociationID","type":"string","required":true,"description":"Chat ID for label association"}]){
     const val = args[p.name];
     if (val === undefined || val === null) throw new Error('Missing path param: ' + p.name);
     pathTmpl = pathTmpl.replace('{'+p.name+'}', encodeURIComponent(String(val)));

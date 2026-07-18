@@ -1,8 +1,8 @@
 const fetch = require('node-fetch');
-module.exports = async function addLabelAssociation(args, env = process.env) {
+module.exports = async function sendBotMessage(args, env = process.env) {
   // Build path with path params
-  let pathTmpl = "/labels/{LabelID}/{AssociationID}";
-  for (const p of [{"name":"LabelID","type":"string","required":true,"description":"Label ID"},{"name":"AssociationID","type":"string","required":true,"description":"Chat ID for label association"}]){
+  let pathTmpl = "/bots/{BotID}/messages";
+  for (const p of [{"name":"BotID","type":"string","required":true,"description":"WhatsApp ID of the AI bot returned by GET /bots"}]){
     const val = args[p.name];
     if (val === undefined || val === null) throw new Error('Missing path param: ' + p.name);
     pathTmpl = pathTmpl.replace('{'+p.name+'}', encodeURIComponent(String(val)));
@@ -25,6 +25,13 @@ module.exports = async function addLabelAssociation(args, env = process.env) {
   const method = "POST";
 
   const init = { method, headers };
+  
+  if (method !== 'GET'){
+    init.headers['Content-Type'] = 'application/json';
+    const bodyObj = {};
+    if (args.hasOwnProperty('body')) bodyObj['body'] = args['body'];
+    init.body = JSON.stringify(bodyObj);
+  }
   
   const res = await fetch(url, init);
   const contentType = res.headers.get('content-type') || '';

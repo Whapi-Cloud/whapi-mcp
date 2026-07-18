@@ -1,8 +1,8 @@
 const fetch = require('node-fetch');
-module.exports = async function addLabelAssociation(args, env = process.env) {
+module.exports = async function setUsername(args, env = process.env) {
   // Build path with path params
-  let pathTmpl = "/labels/{LabelID}/{AssociationID}";
-  for (const p of [{"name":"LabelID","type":"string","required":true,"description":"Label ID"},{"name":"AssociationID","type":"string","required":true,"description":"Chat ID for label association"}]){
+  let pathTmpl = "/users/username";
+  for (const p of []){
     const val = args[p.name];
     if (val === undefined || val === null) throw new Error('Missing path param: ' + p.name);
     pathTmpl = pathTmpl.replace('{'+p.name+'}', encodeURIComponent(String(val)));
@@ -22,9 +22,19 @@ module.exports = async function addLabelAssociation(args, env = process.env) {
   headers['Authorization'] = 'Bearer ' + (env.API_TOKEN || '');
 
   const url = "https://gate.whapi.cloud" + pathTmpl + qs;
-  const method = "POST";
+  const method = "PATCH";
 
   const init = { method, headers };
+  
+  if (method !== 'GET'){
+    init.headers['Content-Type'] = 'application/json';
+    const bodyObj = {};
+    if (args.hasOwnProperty('username')) bodyObj['username'] = args['username'];
+    if (args.hasOwnProperty('reserve')) bodyObj['reserve'] = args['reserve'];
+    if (args.hasOwnProperty('source')) bodyObj['source'] = args['source'];
+    if (args.hasOwnProperty('session_id')) bodyObj['session_id'] = args['session_id'];
+    init.body = JSON.stringify(bodyObj);
+  }
   
   const res = await fetch(url, init);
   const contentType = res.headers.get('content-type') || '';

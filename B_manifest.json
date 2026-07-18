@@ -560,6 +560,11 @@
               "default": false,
               "type": "boolean"
             },
+            "locale": {
+              "description": "Preferred channel locale. API updates replace the current value. When empty, Loki initializes it from the primary phone locale during WhatsApp settings sync.",
+              "default": "",
+              "type": "string"
+            },
             "mock_pairing_code": {
               "description": "Fixed 8-character pairing code for link-code authorization. When omitted or empty, a random code is generated for every request.",
               "type": "string"
@@ -652,6 +657,13 @@
             "required": false,
             "default": false,
             "description": "When enabled, all incoming messages are automatically marked as read as soon as they are received by the API channel. You do not need to mark each message as read manually through the API."
+          },
+          {
+            "name": "locale",
+            "type": "string",
+            "required": false,
+            "default": "",
+            "description": "Preferred channel locale. API updates replace the current value. When empty, Loki initializes it from the primary phone locale during WhatsApp settings sync."
           },
           {
             "name": "mock_pairing_code",
@@ -761,6 +773,11 @@
           "type": "boolean",
           "description": "When enabled, all incoming messages are automatically marked as read as soon as they are received by the API channel. You do not need to mark each message as read manually through the API.",
           "default": false
+        },
+        "locale": {
+          "type": "string",
+          "description": "Preferred channel locale. API updates replace the current value. When empty, Loki initializes it from the primary phone locale during WhatsApp settings sync.",
+          "default": ""
         },
         "mock_pairing_code": {
           "type": "string",
@@ -1656,6 +1673,448 @@
     ]
   },
   {
+    "toolName": "loginUserPasskeyNid",
+    "summary": "Complete login with automatic NID passkey",
+    "description": null,
+    "tags": [
+      "Users"
+    ],
+    "http": {
+      "method": "POST",
+      "path": "/users/login/passkey/nid",
+      "pathParams": [],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": "application/json",
+        "schema": {
+          "title": "Login Passkey Request",
+          "description": "Request to complete a pending passkey login challenge.",
+          "type": "object",
+          "required": [
+            "request_id"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string",
+              "description": "Pending passkey request id returned by /users/login/rowdata."
+            },
+            "timeout_ms": {
+              "type": "number",
+              "description": "Optional passkey completion timeout in milliseconds.",
+              "example": 60000
+            }
+          }
+        },
+        "fields": [
+          {
+            "name": "request_id",
+            "type": "string",
+            "required": true,
+            "description": "Pending passkey request id returned by /users/login/rowdata."
+          },
+          {
+            "name": "timeout_ms",
+            "type": "number",
+            "required": false,
+            "description": "Optional passkey completion timeout in milliseconds."
+          }
+        ]
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "description": "Pending passkey request id returned by /users/login/rowdata."
+        },
+        "timeout_ms": {
+          "type": "number",
+          "description": "Optional passkey completion timeout in milliseconds."
+        }
+      },
+      "required": [
+        "request_id"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X POST -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/users/login/passkey/nid\""
+      }
+    ]
+  },
+  {
+    "toolName": "loginUserPasskeyChrome",
+    "summary": "Complete login with Chrome passkey",
+    "description": null,
+    "tags": [
+      "Users"
+    ],
+    "http": {
+      "method": "POST",
+      "path": "/users/login/passkey/chrome",
+      "pathParams": [],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": "application/json",
+        "schema": {
+          "title": "Login Passkey Request",
+          "description": "Request to complete a pending passkey login challenge.",
+          "type": "object",
+          "required": [
+            "request_id"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string",
+              "description": "Pending passkey request id returned by /users/login/rowdata."
+            },
+            "timeout_ms": {
+              "type": "number",
+              "description": "Optional passkey completion timeout in milliseconds.",
+              "example": 60000
+            }
+          }
+        },
+        "fields": [
+          {
+            "name": "request_id",
+            "type": "string",
+            "required": true,
+            "description": "Pending passkey request id returned by /users/login/rowdata."
+          },
+          {
+            "name": "timeout_ms",
+            "type": "number",
+            "required": false,
+            "description": "Optional passkey completion timeout in milliseconds."
+          }
+        ]
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "description": "Pending passkey request id returned by /users/login/rowdata."
+        },
+        "timeout_ms": {
+          "type": "number",
+          "description": "Optional passkey completion timeout in milliseconds."
+        }
+      },
+      "required": [
+        "request_id"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X POST -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/users/login/passkey/chrome\""
+      }
+    ]
+  },
+  {
+    "toolName": "loginUserPasskeyPaste",
+    "summary": "Complete login with pasted passkey response",
+    "description": null,
+    "tags": [
+      "Users"
+    ],
+    "http": {
+      "method": "POST",
+      "path": "/users/login/passkey/paste",
+      "pathParams": [],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": "application/json",
+        "schema": {
+          "title": "Login Passkey Paste Request",
+          "description": "Request to complete a pending passkey login challenge with a pasted WebAuthn response.",
+          "type": "object",
+          "required": [
+            "request_id",
+            "response"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string",
+              "description": "Pending passkey request id returned by /users/login/rowdata."
+            },
+            "response": {
+              "type": "object",
+              "description": "WebAuthn assertion response JSON copied from the browser console helper."
+            }
+          }
+        },
+        "fields": [
+          {
+            "name": "request_id",
+            "type": "string",
+            "required": true,
+            "description": "Pending passkey request id returned by /users/login/rowdata."
+          },
+          {
+            "name": "response",
+            "type": "object",
+            "required": true,
+            "description": "WebAuthn assertion response JSON copied from the browser console helper."
+          }
+        ]
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "description": "Pending passkey request id returned by /users/login/rowdata."
+        },
+        "response": {
+          "type": "object",
+          "description": "WebAuthn assertion response JSON copied from the browser console helper."
+        }
+      },
+      "required": [
+        "request_id",
+        "response"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X POST -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/users/login/passkey/paste\""
+      }
+    ]
+  },
+  {
     "toolName": "loginUserViaAuthCode",
     "summary": "Get auth code by phone number",
     "description": "This method returns a code that allows you to connect the phone number to the API without the need to scan a QR code, simply by entering the generated code.",
@@ -2140,6 +2599,288 @@
         "name": "happy-path",
         "args": {},
         "curl": "curl -X PATCH -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/users/profile\""
+      }
+    ]
+  },
+  {
+    "toolName": "getUsername",
+    "summary": "Get account username",
+    "description": "Retrieve the username associated with the current WhatsApp account",
+    "tags": [
+      "Users"
+    ],
+    "http": {
+      "method": "GET",
+      "path": "/users/username",
+      "pathParams": [],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": null,
+        "schema": null,
+        "fields": []
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X GET -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/users/username\""
+      }
+    ]
+  },
+  {
+    "toolName": "setUsername",
+    "summary": "Set account username",
+    "description": "Set, reserve, or remove the username associated with the current WhatsApp account",
+    "tags": [
+      "Users"
+    ],
+    "http": {
+      "method": "PATCH",
+      "path": "/users/username",
+      "pathParams": [],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": "application/json",
+        "schema": {
+          "title": "SetUserUsernameRequest",
+          "type": "object",
+          "properties": {
+            "username": {
+              "type": "string",
+              "nullable": true,
+              "description": "Username to set or reserve. Use null to remove the current username."
+            },
+            "reserve": {
+              "type": "boolean",
+              "default": false,
+              "description": "Reserve the username instead of activating it immediately"
+            },
+            "source": {
+              "type": "string",
+              "description": "Username source passed to WhatsApp when reserving it"
+            },
+            "session_id": {
+              "type": "string",
+              "description": "Optional WhatsApp username reservation session identifier"
+            }
+          },
+          "required": [
+            "username"
+          ]
+        },
+        "fields": [
+          {
+            "name": "username",
+            "type": "string",
+            "required": true,
+            "description": "Username to set or reserve. Use null to remove the current username."
+          },
+          {
+            "name": "reserve",
+            "type": "boolean",
+            "required": false,
+            "default": false,
+            "description": "Reserve the username instead of activating it immediately"
+          },
+          {
+            "name": "source",
+            "type": "string",
+            "required": false,
+            "description": "Username source passed to WhatsApp when reserving it"
+          },
+          {
+            "name": "session_id",
+            "type": "string",
+            "required": false,
+            "description": "Optional WhatsApp username reservation session identifier"
+          }
+        ]
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string",
+          "description": "Username to set or reserve. Use null to remove the current username."
+        },
+        "reserve": {
+          "type": "boolean",
+          "description": "Reserve the username instead of activating it immediately",
+          "default": false
+        },
+        "source": {
+          "type": "string",
+          "description": "Username source passed to WhatsApp when reserving it"
+        },
+        "session_id": {
+          "type": "string",
+          "description": "Optional WhatsApp username reservation session identifier"
+        }
+      },
+      "required": [
+        "username"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X PATCH -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/users/username\""
       }
     ]
   },
@@ -10229,6 +10970,125 @@
     ]
   },
   {
+    "toolName": "markMessageAsPlayed",
+    "summary": "Mark voice message as played",
+    "description": "Marks the specified voice message as played by sending a WhatsApp played receipt. It does not play the audio.",
+    "tags": [
+      "Messages"
+    ],
+    "http": {
+      "method": "PUT",
+      "path": "/messages/{MessageID}/played",
+      "pathParams": [
+        {
+          "name": "MessageID",
+          "type": "string",
+          "required": true,
+          "description": "Message ID"
+        }
+      ],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": null,
+        "schema": null,
+        "fields": []
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "MessageID": {
+          "type": "string",
+          "description": "Message ID"
+        }
+      },
+      "required": [
+        "MessageID"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X PUT -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/messages/{MessageID}/played\""
+      }
+    ]
+  },
+  {
     "toolName": "reactToMessage",
     "summary": "😍 React to message",
     "description": "In this method you will be able to react to messages that were sent or received by you. You will need to specify the ID of the message you will respond to, as well as [the emoji](https://support.whapi.cloud/help-desk/sending/send-emoji)",
@@ -10490,7 +11350,7 @@
   {
     "toolName": "starMessage",
     "summary": "⭐ Star message",
-    "description": null,
+    "description": "Adds or removes the star from the specified message based on the `starred` value.",
     "tags": [
       "Messages"
     ],
@@ -11047,7 +11907,7 @@
   {
     "toolName": "sendEvent",
     "summary": "Send event",
-    "description": "This method is responsible for sending a event.",
+    "description": "Send a structured WhatsApp invitation for a scheduled activity. Participants can view the event details and respond directly in the chat. Commonly used in Communities and group chats.\n",
     "tags": [
       "Messages"
     ],
@@ -12284,7 +13144,7 @@
   {
     "toolName": "checkPhones",
     "summary": "Check phones",
-    "description": "Use this method to check whether phone numbers are registered on WhatsApp. This is the correct and recommended way to verify if a number has WhatsApp. Batch check is supported with no limit; however, atypical mass checks may draw attention to your number, so balance checks between channels.",
+    "description": "This method returns whether or not the number has Whatsapp. Batch check provisioning is supported. For bulk checks, explore [available number-checking options](https://support.whapi.cloud/help-desk/faq/checking-if-the-number-has-whatsapp), including the API, no-code interface, and our managed checking service.\n",
     "tags": [
       "Contacts"
     ],
@@ -12860,6 +13720,125 @@
     ]
   },
   {
+    "toolName": "checkExist",
+    "summary": "Check exist",
+    "description": "The method individually checks for a number in WhatsApp without additional information",
+    "tags": [
+      "Contacts"
+    ],
+    "http": {
+      "method": "HEAD",
+      "path": "/contacts/{ContactID}",
+      "pathParams": [
+        {
+          "name": "ContactID",
+          "type": "string",
+          "required": true,
+          "description": "Contact ID"
+        }
+      ],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": null,
+        "schema": null,
+        "fields": []
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "ContactID": {
+          "type": "string",
+          "description": "Contact ID"
+        }
+      },
+      "required": [
+        "ContactID"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X HEAD -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/contacts/{ContactID}\""
+      }
+    ]
+  },
+  {
     "toolName": "editContact",
     "summary": "Edit contact",
     "description": "The method allow to edit contact on mobile app and on the channel",
@@ -13121,7 +14100,7 @@
   {
     "toolName": "getContactAbout",
     "summary": "Get contact about",
-    "description": "получить About-текст WhatsApp-профиля по номеру/ContactID.",
+    "description": "Retrieves the text displayed in the About section of a WhatsApp contact's profile using the contact's phone number or Contact ID.",
     "tags": [
       "Contacts"
     ],
@@ -13597,7 +14576,7 @@
   {
     "toolName": "sendMePresence",
     "summary": "Send online or offline presence",
-    "description": null,
+    "description": "Sets the connected WhatsApp account's presence to online or offline.",
     "tags": [
       "Presences"
     ],
@@ -13737,7 +14716,7 @@
   {
     "toolName": "getPresence",
     "summary": "Get presence",
-    "description": null,
+    "description": "Returns the latest known presence status and last-seen time for a contact or group previously subscribed to presence updates.",
     "tags": [
       "Presences"
     ],
@@ -13856,7 +14835,7 @@
   {
     "toolName": "sendPresence",
     "summary": "Send typing or recording presence",
-    "description": null,
+    "description": "Shows or clears the typing or voice-recording indicator in a contact or group chat, optionally clearing it after a specified delay.",
     "tags": [
       "Presences"
     ],
@@ -14029,7 +15008,7 @@
   {
     "toolName": "subscribePresence",
     "summary": "Subscribe to presence",
-    "description": null,
+    "description": "Starts tracking presence updates for a contact or group so its latest status and last-seen time can be retrieved.",
     "tags": [
       "Presences"
     ],
@@ -16371,7 +17350,7 @@
   {
     "toolName": "getGroupMetadataByInviteCode",
     "summary": "Get group info by invite code",
-    "description": null,
+    "description": "Returns information about the WhatsApp group associated with the invitation code without joining the group.",
     "tags": [
       "Groups"
     ],
@@ -16490,7 +17469,7 @@
   {
     "toolName": "sendGroupInvite",
     "summary": "Send group invite link",
-    "description": null,
+    "description": "Sends the group invitation link identified by `InviteCode` to the recipient specified in `to`. It does not join the connected account to the group.",
     "tags": [
       "Groups"
     ],
@@ -17275,7 +18254,7 @@
   {
     "toolName": "getStories",
     "summary": "Get list of stories",
-    "description": null,
+    "description": "Returns a list of WhatsApp Status updates (stories) available to the connected account.",
     "tags": [
       "Stories"
     ],
@@ -18857,7 +19836,7 @@
   {
     "toolName": "copyStory",
     "summary": "Copy story",
-    "description": null,
+    "description": "Republishes the specified story to the connected account's WhatsApp Status, optionally choosing who can view it.",
     "tags": [
       "Stories"
     ],
@@ -19020,7 +19999,7 @@
   {
     "toolName": "getMessageViewStatuses",
     "summary": "Get message or story view statuses",
-    "description": null,
+    "description": "Returns delivery, read, and view records for the specified outgoing group messages or story",
     "tags": [
       "Statuses"
     ],
@@ -25716,7 +26695,7 @@
   {
     "toolName": "sendCatalog",
     "summary": "Send catalog by Contact ID (phone number)",
-    "description": null,
+    "description": "Sends a link and preview for the catalog of the business identified by `ContactID` to the recipient specified in `to`.",
     "tags": [
       "Business"
     ],
@@ -27461,7 +28440,7 @@
   {
     "toolName": "getLabelAssociations",
     "summary": "Get objects associated with label",
-    "description": null,
+    "description": "Returns the chats associated with the specified WhatsApp Business label.",
     "tags": [
       "Labels"
     ],
@@ -27861,7 +28840,7 @@
           "name": "AssociationID",
           "type": "string",
           "required": true,
-          "description": "Chat ID or Message ID for label association"
+          "description": "Chat ID for label association"
         }
       ],
       "queryParams": [],
@@ -27919,7 +28898,7 @@
         },
         "AssociationID": {
           "type": "string",
-          "description": "Chat ID or Message ID for label association"
+          "description": "Chat ID for label association"
         }
       },
       "required": [
@@ -27991,7 +28970,7 @@
           "name": "AssociationID",
           "type": "string",
           "required": true,
-          "description": "Chat ID or Message ID for label association"
+          "description": "Chat ID for label association"
         }
       ],
       "queryParams": [],
@@ -28049,7 +29028,7 @@
         },
         "AssociationID": {
           "type": "string",
-          "description": "Chat ID or Message ID for label association"
+          "description": "Chat ID for label association"
         }
       },
       "required": [
@@ -30934,6 +31913,254 @@
         "name": "happy-path",
         "args": {},
         "curl": "curl -X POST -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/calls/group_link\""
+      }
+    ]
+  },
+  {
+    "toolName": "getBotList",
+    "summary": "Get bots",
+    "description": "Returns the list of bots available for the account",
+    "tags": [
+      "Bots"
+    ],
+    "http": {
+      "method": "GET",
+      "path": "/bots",
+      "pathParams": [],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": null,
+        "schema": null,
+        "fields": []
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X GET -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/bots\""
+      }
+    ]
+  },
+  {
+    "toolName": "sendBotMessage",
+    "summary": "Send text message to AI bot",
+    "description": "Sends a text prompt to an AI bot in a private chat. The bot response is delivered asynchronously as an incoming message.",
+    "tags": [
+      "Bots"
+    ],
+    "http": {
+      "method": "POST",
+      "path": "/bots/{BotID}/messages",
+      "pathParams": [
+        {
+          "name": "BotID",
+          "type": "string",
+          "required": true,
+          "description": "WhatsApp ID of the AI bot returned by GET /bots"
+        }
+      ],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": "application/json",
+        "schema": {
+          "title": "Message text unique parameters",
+          "type": "object",
+          "required": [
+            "body"
+          ],
+          "properties": {
+            "body": {
+              "description": "Message text",
+              "type": "string"
+            }
+          }
+        },
+        "fields": [
+          {
+            "name": "body",
+            "type": "string",
+            "required": true,
+            "description": "Message text"
+          }
+        ]
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "BotID": {
+          "type": "string",
+          "description": "WhatsApp ID of the AI bot returned by GET /bots"
+        },
+        "body": {
+          "type": "string",
+          "description": "Message text"
+        }
+      },
+      "required": [
+        "BotID",
+        "body"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X POST -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/bots/{BotID}/messages\""
       }
     ]
   }
