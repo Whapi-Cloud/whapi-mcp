@@ -560,8 +560,12 @@
               "default": false,
               "type": "boolean"
             },
+            "outgoing_calls_enabled": {
+              "description": "Enables outgoing calls for the channel. The default is false. Changing this setting automatically restarts the channel.",
+              "type": "boolean"
+            },
             "locale": {
-              "description": "Preferred channel locale. API updates replace the current value. When empty, Loki initializes it from the primary phone locale during WhatsApp settings sync.",
+              "description": "Preferred language settings for the channel. Some endpoints may use this value. If left empty, the phone's primary language is used when WhatsApp settings are synced.",
               "default": "",
               "type": "string"
             },
@@ -659,11 +663,17 @@
             "description": "When enabled, all incoming messages are automatically marked as read as soon as they are received by the API channel. You do not need to mark each message as read manually through the API."
           },
           {
+            "name": "outgoing_calls_enabled",
+            "type": "boolean",
+            "required": false,
+            "description": "Enables outgoing calls for the channel. The default is false. Changing this setting automatically restarts the channel."
+          },
+          {
             "name": "locale",
             "type": "string",
             "required": false,
             "default": "",
-            "description": "Preferred channel locale. API updates replace the current value. When empty, Loki initializes it from the primary phone locale during WhatsApp settings sync."
+            "description": "Preferred language settings for the channel. Some endpoints may use this value. If left empty, the phone's primary language is used when WhatsApp settings are synced."
           },
           {
             "name": "mock_pairing_code",
@@ -774,9 +784,13 @@
           "description": "When enabled, all incoming messages are automatically marked as read as soon as they are received by the API channel. You do not need to mark each message as read manually through the API.",
           "default": false
         },
+        "outgoing_calls_enabled": {
+          "type": "boolean",
+          "description": "Enables outgoing calls for the channel. The default is false. Changing this setting automatically restarts the channel."
+        },
         "locale": {
           "type": "string",
-          "description": "Preferred channel locale. API updates replace the current value. When empty, Loki initializes it from the primary phone locale during WhatsApp settings sync.",
+          "description": "Preferred language settings for the channel. Some endpoints may use this value. If left empty, the phone's primary language is used when WhatsApp settings are synced.",
           "default": ""
         },
         "mock_pairing_code": {
@@ -31642,6 +31656,125 @@
     ]
   },
   {
+    "toolName": "getCall",
+    "summary": "Get call information",
+    "description": "The method returns call information currently available on the connected channel. It does not request call history directly from WhatsApp servers.",
+    "tags": [
+      "Calls"
+    ],
+    "http": {
+      "method": "GET",
+      "path": "/calls/{CallID}",
+      "pathParams": [
+        {
+          "name": "CallID",
+          "type": "string",
+          "required": true,
+          "description": "Call ID"
+        }
+      ],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": null,
+        "schema": null,
+        "fields": []
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "CallID": {
+          "type": "string",
+          "description": "Call ID"
+        }
+      },
+      "required": [
+        "CallID"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X GET -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/calls/{CallID}\""
+      }
+    ]
+  },
+  {
     "toolName": "rejectCall",
     "summary": "Reject call",
     "description": "This method is responsible for rejecting a call.",
@@ -31913,6 +32046,159 @@
         "name": "happy-path",
         "args": {},
         "curl": "curl -X POST -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/calls/group_link\""
+      }
+    ]
+  },
+  {
+    "toolName": "makeCall",
+    "summary": "Make an attention call",
+    "description": "Places a brief WhatsApp call intended to attract the recipient's attention. Enable `outgoing_calls_enabled` in the channel settings before using this endpoint. The call is automatically terminated after the configured `duration` (0–30 seconds, default 5). A successful response confirms only that WhatsApp acknowledged the call offer; it does not confirm ringing or answer. This endpoint does not establish a VoIP media stream.",
+    "tags": [
+      "Calls"
+    ],
+    "http": {
+      "method": "POST",
+      "path": "/calls/outgoing",
+      "pathParams": [],
+      "queryParams": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer ${API_TOKEN}",
+          "required": true
+        }
+      ],
+      "requestBody": {
+        "contentType": "application/json",
+        "schema": {
+          "title": "Make call request body",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "to": {
+              "type": "string",
+              "minLength": 1,
+              "description": "WhatsApp phone number or private chat ID to call",
+              "example": "1234567891@s.whatsapp.net"
+            },
+            "duration": {
+              "type": "integer",
+              "description": "Post-acknowledgement attention window in seconds before automatic termination. A value of 0 terminates immediately.",
+              "default": 5,
+              "minimum": 0,
+              "maximum": 30
+            }
+          },
+          "required": [
+            "to"
+          ]
+        },
+        "fields": [
+          {
+            "name": "to",
+            "type": "string",
+            "required": true,
+            "description": "WhatsApp phone number or private chat ID to call"
+          },
+          {
+            "name": "duration",
+            "type": "integer",
+            "required": false,
+            "default": 5,
+            "description": "Post-acknowledgement attention window in seconds before automatic termination. A value of 0 terminates immediately."
+          }
+        ]
+      },
+      "response": {
+        "contentTypes": [
+          "application/json"
+        ],
+        "successStatusRange": [
+          200,
+          299
+        ]
+      },
+      "pagination": {
+        "enabled": false,
+        "params": {
+          "limitParam": "limit",
+          "offsetParam": "offset",
+          "pageParam": null,
+          "cursorParam": null
+        }
+      },
+      "timeouts": {
+        "requestMs": 30000
+      },
+      "retries": {
+        "enabled": false,
+        "maxAttempts": 0,
+        "backoffMs": 0
+      }
+    },
+    "security": {
+      "type": "bearer",
+      "envTokenName": "API_TOKEN",
+      "headerName": "Authorization",
+      "headerTemplate": "Bearer ${API_TOKEN}"
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "to": {
+          "type": "string",
+          "description": "WhatsApp phone number or private chat ID to call"
+        },
+        "duration": {
+          "type": "integer",
+          "description": "Post-acknowledgement attention window in seconds before automatic termination. A value of 0 terminates immediately.",
+          "default": 5
+        }
+      },
+      "required": [
+        "to"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "content": {}
+      }
+    },
+    "errorMapping": [
+      {
+        "status": 400,
+        "error": "BadRequest"
+      },
+      {
+        "status": 401,
+        "error": "Unauthorized"
+      },
+      {
+        "status": 403,
+        "error": "Forbidden"
+      },
+      {
+        "status": 404,
+        "error": "NotFound"
+      },
+      {
+        "status": 429,
+        "error": "RateLimited"
+      },
+      {
+        "status": 500,
+        "error": "ServerError"
+      }
+    ],
+    "examples": [
+      {
+        "name": "happy-path",
+        "args": {},
+        "curl": "curl -X POST -H \"Authorization: Bearer ${API_TOKEN}\" \"https://gate.whapi.cloud/calls/outgoing\""
       }
     ]
   },

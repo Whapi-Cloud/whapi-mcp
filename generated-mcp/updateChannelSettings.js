@@ -40,6 +40,7 @@ module.exports = async function updateChannelSettings(args, env = process.env) {
     if (args.hasOwnProperty('offline_mode')) bodyObj['offline_mode'] = args['offline_mode'];
     if (args.hasOwnProperty('full_history')) bodyObj['full_history'] = args['full_history'];
     if (args.hasOwnProperty('auto_read_messages')) bodyObj['auto_read_messages'] = args['auto_read_messages'];
+    if (args.hasOwnProperty('outgoing_calls_enabled')) bodyObj['outgoing_calls_enabled'] = args['outgoing_calls_enabled'];
     if (args.hasOwnProperty('locale')) bodyObj['locale'] = args['locale'];
     if (args.hasOwnProperty('mock_pairing_code')) bodyObj['mock_pairing_code'] = args['mock_pairing_code'];
     if (args.hasOwnProperty('ignored_presences')) bodyObj['ignored_presences'] = args['ignored_presences'];
